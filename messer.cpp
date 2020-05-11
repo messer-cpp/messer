@@ -2539,7 +2539,11 @@ int main(){
   std::list<std::string> inputed;
   std::list<std::list<decltype(std::string{} | annotation{""} | phase1 | phase2 | phase3)::value_type>> tokens;
   messer::phase4_t preprocessor_data;
-  preprocessor_data.system_include_dir.emplace_back("/usr/include");
+  const char* additional_include_dirs[] = {
+    #include "include_dir.ipp"
+  };
+  for(auto it = std::cbegin(additional_include_dirs), end = std::cend(additional_include_dirs) - 1; it != end; ++it)
+    preprocessor_data.system_include_dir.emplace_back(*it);
   linse input;
   input.history.load("./.repl_history");
   auto logical_line = [&input, &preprocessor_data](const char* prompt)->std::optional<std::string>{
