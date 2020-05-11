@@ -16,7 +16,7 @@ Messer is an interactive environment for evaluating C preprocessing macros confo
 ## Build
 
 ```shell-session
-$ g++ -std=c++17 -Wall -Wextra -pedantic-errors -O3 -march=native -omesser -Ilinse messer.cpp -lboost_context -lstdc++fs
+$ make
 ```
 
 ## License
