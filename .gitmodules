@@ -1,6 +1,6 @@
 [submodule "linse"]
 	path = linse
-	url = https://github.com/wx257osn2/linse
+	url = https://github.com/messer-cpp/linse
 [submodule "veiler"]
 	path = veiler
-	url = https://github.com/wx257osn2/veiler
+	url = https://github.com/messer-cpp/veiler
