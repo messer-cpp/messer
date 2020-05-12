@@ -2562,7 +2562,7 @@ int main(){
           >> lit(token_type::punctuator_hash)
           >> lit(token_type::identifier_include)]
           >> &( lit(token_type::punctuator_less)[([]([[maybe_unused]] auto&&... unused){return true;})]
-              | lit("\""sv)[([]([[maybe_unused]] auto&&... unused){return true;})]
+              | lit("\""sv)[([]([[maybe_unused]] auto&&... unused){return false;})]
               )
            ).with_skipper(*white_space);
         static const auto has_include_parser_impl =
