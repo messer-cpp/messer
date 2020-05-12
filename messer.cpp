@@ -1422,8 +1422,13 @@ class phase4_t{
         return passed(*it++);
       if(auto parsed_result = args_parser(arg_it, end))
         args = *parsed_result;
-      else
+      else{
+        for(auto itt = it, end = std::next(arg_it); itt != end; ++itt){
+          if(tmp_state.replaced.find(itt) != tmp_state.replaced.end())
+            return passed(*it++);
+        }
         throw std::runtime_error(std::string{it->filename()} + ':' + std::to_string(it->line()) + ':' + std::to_string(it->column()) + ": error: ')' does not exist");
+      }
       if(is_pragma_op){
         if(args.size() != 1)
           return false;
