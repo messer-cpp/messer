@@ -2549,6 +2549,18 @@ int main(){
   };
   for(auto it = std::cbegin(additional_include_dirs), end = std::cend(additional_include_dirs) - 1; it != end; ++it)
     preprocessor_data.system_include_dir.emplace_back(*it);
+  {
+    static constexpr const char* predefined_macros = R"code(
+#define __cplusplus 201703L
+#define __STDC_HOSTED__ 1
+#define __STDCPP_DEFAULT_NEW_ALIGNMENT__ 16
+#define __STDC_ISO_10646__ 199712L
+  )code";
+    inputed.emplace_back(predefined_macros);
+    auto range = inputed.back() | annotation{"<predefined-macros>"} | phase1 | phase2 | phase3;
+    tokens.emplace_back(range.begin(), range.end());
+    preprocessor_data(tokens.back());
+  }
   linse input;
   input.history.load("./.repl_history");
   auto logical_line = [&input, &preprocessor_data](const char* prompt)->std::optional<std::string>{
