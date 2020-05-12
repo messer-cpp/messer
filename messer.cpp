@@ -2661,18 +2661,20 @@ int main(){
         >> veiler::pegasus::filter([](auto&& v, [[maybe_unused]] auto&&... unused){return messer::is_identifier(v->type());})
          ].with_skipper(*white_space);
       const auto tokens = std::list<decltype(range)::value_type>(range.begin(), range.end());
-      const std::string_view prefix = tokens.back().get();
+      std::string_view prefix = tokens.back().get();
+      if(tokens.back().type() == token_type::white_space)
+        prefix = "";
       comp.set_prefix(prefix);
       std::vector<std::string> bank;
       if(if_parser(tokens)){
-        if(prefix.size() <= 13 && "__has_include"sv.compare(0, prefix.size(), prefix) == 0)
+        if((prefix.size() <= 13 && "__has_include"sv.compare(0, prefix.size(), prefix) == 0) || prefix.empty())
           bank.emplace_back("__has_include(");
-        else if(prefix.size() <= 7 && "defined"sv.compare(0, prefix.size(), prefix) == 0)
+        else if((prefix.size() <= 7 && "defined"sv.compare(0, prefix.size(), prefix) == 0) || prefix.empty())
           bank.emplace_back("defined(");
       }else if(auto ifdef_directive = ifdef_parser(tokens)){
         if((*ifdef_directive)->get() != prefix)
           return comp;
-        if(prefix.size() <= 13 && "__has_include"sv.compare(0, prefix.size(), prefix) == 0)
+        if((prefix.size() <= 13 && "__has_include"sv.compare(0, prefix.size(), prefix) == 0) || prefix.empty())
           bank.emplace_back("__has_include");
       }else if(auto define_directive = define_fm_parser(tokens)){
         auto&& [identifiers, is_variadic] = *define_directive;
@@ -2680,17 +2682,23 @@ int main(){
           if(prefix.size() <= x->get().size() && x->get().compare(0, prefix.size(), prefix) == 0)
             bank.emplace_back(x->get());
         if(is_variadic
-        && prefix.size() <= 11
-        && "__VA_ARGS__"sv.compare(0, prefix.size(), prefix) == 0)
+        && ( (prefix.size() <= 11 && "__VA_ARGS__"sv.compare(0, prefix.size(), prefix) == 0)
+           || prefix.empty()))
           bank.emplace_back("__VA_ARGS__");
-      }else if(auto directive =
-        ( veiler::pegasus::semantic_actions::omit[
-            lit(token_type::eol)
-         >> lit(token_type::punctuator_hash)
-          ]
-       >> veiler::pegasus::filter([](auto&& v, [[maybe_unused]] auto&&... unused){return messer::is_identifier(v->type());})
-        ).with_skipper(*white_space)(tokens))
-        if((*directive)->get() == prefix){
+      }else{
+        auto it = tokens.cbegin();
+        auto directive =
+          ( veiler::pegasus::semantic_actions::omit[
+              lit(token_type::eol)
+           >> lit(token_type::punctuator_hash)
+            ]
+         >> ( veiler::pegasus::filter([](auto&& v, [[maybe_unused]] auto&&... unused){return messer::is_identifier(v->type());}) >> veiler::pegasus::read[veiler::pegasus::omit]
+            | veiler::pegasus::eps[veiler::pegasus::semantic_actions::omit]
+            )
+          ).with_skipper(*white_space)(it, tokens.cend());
+        if(directive && it == tokens.cend() && ((*directive && (**directive)->get() == prefix) || !*directive)){
+          if(!*directive)
+            prefix = "";
           std::string_view directives[] = {
             "define",
             "elif",
@@ -2706,14 +2714,15 @@ int main(){
             "undef",
           };
           for(auto&& x : directives)
-            if(prefix.size() <= x.size() && x.compare(0, prefix.size(), prefix) == 0)
+            if((prefix.size() <= x.size() && x.compare(0, prefix.size(), prefix) == 0) || prefix.empty())
               comp.add_completion(x.substr(prefix.size()));
           return comp;
         }
+      }
       const bool is_undef = undef_parser(tokens).valid();
       auto search_add = [&](auto&& data, char suffix = '\0'){
         for(auto&& x : data)
-          if(prefix.size() <= x.first.size() && !x.first.compare(0, prefix.size(), prefix)){
+          if((prefix.size() <= x.first.size() && !x.first.compare(0, prefix.size(), prefix)) || prefix.empty()){
             if(suffix == '\0')
               bank.emplace_back(x.first);
             else
@@ -2722,28 +2731,29 @@ int main(){
       };
       search_add(preprocessor_data.objects);
       search_add(preprocessor_data.functions, is_undef ? '\0' : '(');
-      for(auto&& x : {
-          "true"sv,
-          "false"sv,
-          "__TIME__"sv,
-          "__DATE__"sv,
-          "__FILE__"sv,
-          "__LINE__"sv,
-          "_Pragma("sv,
-          "bitand"sv,
-          "and_eq"sv,
-          "xor_eq"sv,
-          "not_eq"sv,
-          "bitor"sv,
-          "compl"sv,
-          "or_eq"sv,
-          "and"sv,
-          "xor"sv,
-          "not"sv,
-          "or"sv
-        })
-        if(prefix.size() <= x.size() && x.compare(0, prefix.size(), prefix) == 0)
-          bank.emplace_back(x);
+      if(!is_undef)
+        for(auto&& x : {
+            "true"sv,
+            "false"sv,
+            "__TIME__"sv,
+            "__DATE__"sv,
+            "__FILE__"sv,
+            "__LINE__"sv,
+            "_Pragma("sv,
+            "bitand"sv,
+            "and_eq"sv,
+            "xor_eq"sv,
+            "not_eq"sv,
+            "bitor"sv,
+            "compl"sv,
+            "or_eq"sv,
+            "and"sv,
+            "xor"sv,
+            "not"sv,
+            "or"sv
+          })
+          if((prefix.size() <= x.size() && x.compare(0, prefix.size(), prefix) == 0) || prefix.empty())
+            bank.emplace_back(x);
       std::sort(bank.begin(), bank.end());
       const auto end = std::unique(bank.begin(), bank.end());
       for(auto it = bank.begin(); it != end; ++it)
