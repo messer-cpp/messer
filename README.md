@@ -20,7 +20,7 @@ $ make
 ```
 
 It takes **extremely** long time.  
-For example, it takes 4 minutes to build messer on an AMD Eyzen7 2700X.  
+For example, it takes 4 minutes to build messer on an AMD Ryzen7 2700X.  
 It is recommended to take coffee while building.
 
 ```
