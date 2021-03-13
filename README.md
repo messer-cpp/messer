@@ -9,6 +9,9 @@ Messer is an interactive environment for evaluating C preprocessing macros confo
     - Boost
         - Boost.Coroutine2
         - Boost.Preprocessor
+    - `sed`
+    - `awk`
+    - `make`
 - You can get the following prerequisites as git-submodules:
     - Veiler
     - Linse
