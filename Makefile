@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic-errors -O3 -march=native -Ilinse
+CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic-errors -O3 -march=native -Ilinse -I.
 LDFLAGS := -lboost_context -lstdc++fs
 OBJS := messer include_dir.ipp
 
