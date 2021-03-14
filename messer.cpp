@@ -1530,7 +1530,6 @@ class phase4_t{
                   (ps.replaced[itt] = recur).emplace_back(itt->get());
                 else
                   ps.replaced[itt] = recur;
-                ps.replaced[itt] = recur;
               }
             }
           }
