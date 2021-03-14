@@ -2205,11 +2205,82 @@ class phase4_t{
               }
               void operator()(define_data&& d)const{
                 struct{
+                  [[noreturn]] static void throw_redefine(const std::list<token_t>::const_iterator& it){
+                    std::string message(it->filename());
+                    message += ':' + std::to_string(it->line()) + ':' + std::to_string(it->column()) + ": error: invalid redifinition of '";
+                    message += it->get() + '\'';
+                    throw std::runtime_error(std::move(message));
+                  }
                   void operator()(std::tuple<std::list<token_t>::const_iterator, func_t>&& t)const{
-                    s_->functions.emplace(std::get<0>(std::move(t))->get(), std::get<1>(std::move(t)));
+                    auto&& [name_node, func_data] = std::move(t);
+                    {
+                      auto prev_defined = s_->functions.find(name_node->get());
+                      if(prev_defined != s_->functions.end()){
+                        if(prev_defined->second.arg_num != func_data.arg_num)
+                          throw_redefine(name_node);
+                        auto prev_it = prev_defined->second.dst.begin();
+                        auto current_it = func_data.dst.begin();
+                        std::size_t idx = 0;
+                        while(true){
+                          if(prev_it == prev_defined->second.dst.end()){
+                            if(current_it != func_data.dst.end())
+                              while(current_it != func_data.dst.end())
+                                if(current_it++->type() != token_type::white_space)
+                                  throw_redefine(name_node);
+                            break;
+                          }
+                          else if(current_it == func_data.dst.end()){
+                            while(prev_it != prev_defined->second.dst.end())
+                              if(prev_it++->type() != token_type::white_space)
+                                throw_redefine(name_node);
+                            break;
+                          }
+                          if(prev_it->type() != current_it->type()
+                          || (prev_it->type() != token_type::white_space && prev_it->get() != current_it->get())
+                          || prev_defined->second.arg_index[idx] != func_data.arg_index[idx])
+                            throw_redefine(name_node);
+                          ++prev_it;
+                          ++current_it;
+                          ++idx;
+                        }
+                      }
+                      else if(s_->objects.find(name_node->get()) != s_->objects.end())
+                        throw_redefine(name_node);
+                    }
+                    s_->functions.emplace(name_node->get(), std::move(func_data));
                   }
                   void operator()(std::tuple<std::list<token_t>::const_iterator, output_range<std::list<token_t>::const_iterator>>&& t)const{
-                    s_->objects.emplace(std::get<0>(std::move(t))->get(), std::get<1>(std::move(t)));
+                    auto&& [name_node, replacement_list] = std::move(t);
+                    {
+                      auto prev_defined = s_->objects.find(name_node->get());
+                      if(prev_defined != s_->objects.end()){
+                        auto prev_it = prev_defined->second.begin();
+                        auto current_it = replacement_list.begin();
+                        while(true){
+                          if(prev_it == prev_defined->second.end()){
+                            if(current_it != replacement_list.end())
+                              while(current_it != replacement_list.end())
+                                if(current_it++->type() != token_type::white_space)
+                                  throw_redefine(name_node);
+                            break;
+                          }
+                          else if(current_it == replacement_list.end()){
+                            while(prev_it != prev_defined->second.end())
+                              if(prev_it++->type() != token_type::white_space)
+                                throw_redefine(name_node);
+                            break;
+                          }
+                          if(prev_it->type() != current_it->type()
+                          || (prev_it->type() != token_type::white_space && prev_it->get() != current_it->get()))
+                            throw_redefine(name_node);
+                          ++prev_it;
+                          ++current_it;
+                        }
+                      }
+                      else if(s_->functions.find(name_node->get()) != s_->functions.end())
+                        throw_redefine(name_node);
+                    }
+                    s_->objects.emplace(name_node->get(), std::move(replacement_list));
                   }
                   phase4_t* s_;
                 }v{s_};
