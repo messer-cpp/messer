@@ -578,15 +578,10 @@ class phase3_t{
            |  lit('r')
            |  lit('t')
            |  lit('v')
-           )
-           |
-           (  rules.octo >> rules.octo >> rules.octo
+           |  rules.octo >> rules.octo >> rules.octo
            |  rules.octo >> rules.octo
            |  rules.octo
-           )
-           |
-           (  lit('x')
-           >> +rules.hex
+           |  lit('x') >> +rules.hex
            )
         ))
     AUTO_RULE(string_literal, veiler::pegasus::transient(
