@@ -1568,19 +1568,6 @@ class phase4_t{
               yield(state_, tmp_state_, itr, std::move(list_));}}));
         {
           if(!tokens_equal(list, backup)){
-              std::vector<std::string> recur_;
-              bool first = true;
-              for(auto it_ = ls.begin(); it_ != ls.end() && (first || !recur_.empty()); ++it_){
-                auto rit = ps.replaced.find(it_);
-                if(rit != ps.replaced.end()){
-                  if(first)
-                    recur_ = rit->second, first = false;
-                  else
-                    recur_ = vector_product(std::move(recur_), rit->second);
-                }
-                else
-                  recur_.clear(), first = false;
-              }
             cei(cei, ls, it_, list.begin(), list.end(), index, ps);
             std::swap(tmp_state.replaced, ps.replaced);
             return;
