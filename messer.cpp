@@ -1041,7 +1041,10 @@ inline std::string stringizer(const output_range<T>& r){
       else
         str += ' ';
     else
-      str += escape(x.get());
+      if(x.type() == token_type::unclassified_character)
+        str += x.get();
+      else
+        str += escape(x.get());
   return str;
 }
 template<typename T>
