@@ -2498,7 +2498,7 @@ class phase4_t{
       const std::filesystem::path* cp;
     }visitor{this, &ls, &override_annotation, &current_path};
     auto ret = visitor(*if_group);
-    if(!ret.empty())
+    if(!ret.empty() && ret.begin()->type() == token_type::eol)
       ret.erase(ret.begin()); //first eol
     return ret;
   }
