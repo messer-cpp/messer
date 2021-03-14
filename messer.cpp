@@ -2749,8 +2749,8 @@ int main(){
         >> veiler::pegasus::filter([](auto&& v, [[maybe_unused]] auto&&... unused){return messer::is_identifier(v->type());})
          ].with_skipper(*white_space);
       const auto tokens = std::list<decltype(range)::value_type>(range.begin(), range.end());
-      std::string_view prefix = tokens.back().get();
-      if(tokens.back().type() == token_type::white_space)
+      std::string_view prefix = tokens.empty() ? "" : tokens.back().get();
+      if(!tokens.empty() && tokens.back().type() == token_type::white_space)
         prefix = "";
       comp.set_prefix(prefix);
       std::vector<std::string> bank;
