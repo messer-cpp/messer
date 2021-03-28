@@ -2160,6 +2160,7 @@ class phase4_t{
     auto passed = [&](auto&& t){result.push_back(t);return true;};
     for(auto it = r.begin(); it != r.end();)
       if((&pp_directive_line)(it, r.end())){
+        auto copied = it;
         if(auto ret = pp_directive(it, r.end())){
           if(*ret){
             struct{
@@ -2363,6 +2364,15 @@ class phase4_t{
               std::list<token_t>* res_;
             }visitor{this, &preprocessing_state, &override_annotation, ls.end(), current_path, &result};
             std::visit(visitor, std::move(**ret));
+          }
+          else{
+            veiler::pegasus::semantic_actions::omit[pp_directive_line](copied, r.end());
+            if(copied->type() != token_type::eol && !veiler::pegasus::semantic_actions::omit[&rule_pragma](copied, r.end())){
+              std::string message = std::string{copied->filename()} + ':' + std::to_string(copied->line()) + ':' + std::to_string(copied->column()) + ": error: invalid preprocessing directive: ";
+              for(auto it = copied; it->type() != token_type::eol; ++it)
+                message += it->get();
+              throw std::runtime_error(std::move(message));
+            }
           }
         }
         else
