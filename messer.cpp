@@ -2602,8 +2602,8 @@ int main(){
   const char* additional_include_dirs[] = {
     #include "include_dir.ipp"
   };
-  for(auto it = std::cbegin(additional_include_dirs), end = std::cend(additional_include_dirs) - 1; it != end; ++it)
-    preprocessor_data.system_include_dir.emplace_back(*it);
+  for(auto x : additional_include_dirs)
+    preprocessor_data.system_include_dir.emplace_back(x);
   {
     static constexpr const char* predefined_macros = R"code(
 #define __cplusplus 201703L
