@@ -1242,10 +1242,12 @@ class phase4_t{
     }
     template<typename Iterator, typename F>
     static auto search_(Iterator it, Iterator sentinel, F&& f){
+      if(it == sentinel)
+        throw std::runtime_error("search_ failed");
       do{
+        f(it);
         if(it == sentinel)
           throw std::runtime_error("search_ failed");
-        f(it);
       }while(is_white_spaces(it->type()));
       return it;
     }
