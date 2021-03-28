@@ -1222,8 +1222,8 @@ class phase4_t{
     static std::string date(){
       return format_time_point(std::chrono::system_clock::now(), "%b %e %Y", "Mmm dd yyyy");
     }
-    template<typename T, typename U>
-    static auto cat_token(T&& prev, U&& next){
+    template<typename T, typename U, typename V>
+    static auto cat_token(T&& prev, U&& next, V&& hashhash){
       if(prev.type() == token_type::empty)
         return next;
       if(next.type() == token_type::empty)
@@ -1231,9 +1231,15 @@ class phase4_t{
       auto str = prev.get() + next.get();
       auto range = str | annotation{prev.annotation()} | phase3_t{};
       if(std::distance(std::next(range.begin()), range.end()) != 1){
-        for(auto&& x : range)
-          std::cout << x.type() << " : " << x.get() << std::endl;
-        throw std::runtime_error("operator ## makes invalid token");
+        std::string message = std::string{hashhash->filename()} + ':' + std::to_string(hashhash->line()) + ':' + std::to_string(hashhash->column()) + ": error: operator ## makes invalid token";
+        const auto f = [](auto t){
+          std::stringstream ss;
+          ss << t;
+          return ss.str();
+        };
+        for(auto it = std::next(range.begin()); it != range.end(); ++it)
+          message += "\n  " + std::string{it->filename()} + ':' + std::to_string(it->line()) + ':' + std::to_string(it->column()) + ": " + it->get() + '(' + f(it->type()) + ")";
+        throw std::runtime_error(std::move(message));
       }
       auto t = *std::next(range.begin());
       if(t.type() == token_type::punctuator_hash || t.type() == token_type::punctuator_hashhash)
@@ -1262,7 +1268,7 @@ class phase4_t{
       };
       const auto prev = search(hashhash, pps.list.begin(), [](auto&& it){--it;});
       auto next = search(hashhash, pps.list.end(), [](auto&& it){++it;});
-      const auto replaced_pos = pps.list.insert(prev, cat_token(*prev, *next));
+      const auto replaced_pos = pps.list.insert(prev, cat_token(*prev, *next, hashhash));
       ++next;
       for(auto it = prev; it != next; ++it)
         pps.replaced.erase(it);
@@ -2185,7 +2191,13 @@ class phase4_t{
                     canonicaled = std::move(copied);
                   }
                   res_->splice(res_->end(), (*s_)(s_->files[canonicaled], path->parent_path()));
-                  return;
+                }
+                else{
+                  auto message = std::string{tmp.begin()->filename()} + ':' + std::to_string(tmp.begin()->line()) + ':' + std::to_string(tmp.begin()->column()) + ": fatal error: ";
+                  for(auto&& x : tmp)
+                    message += x.get();
+                  message += ": No such file or directory";
+                  throw std::runtime_error(std::move(message));
                 }
                 return;
               }
@@ -2453,10 +2465,18 @@ class phase4_t{
         for(auto&& [range, node] : if_section.data)
           switch(range.begin()->type()){
           case token_type::identifier_if:
-          case token_type::identifier_elif:
-            if(arithmetic_expression::entrypoint()(self->eval<true>(*ls_p, iterator_range{next(range.begin()), range.end()}, *oa, *cp), *self, *cp).value() != 0)
+          case token_type::identifier_elif:{
+            auto ae = arithmetic_expression::entrypoint()(self->eval<true>(*ls_p, iterator_range{next(range.begin()), range.end()}, *oa, *cp), *self, *cp);
+            if(!ae){
+              auto it = next(range.begin());
+              std::string message = std::string{it->filename()} + ':' + std::to_string(it->line()) + ':' + std::to_string(it->column()) + ": error: invalid expression: ";
+              for(auto&& x : iterator_range{it, range.end()})
+                message += x.get();
+              throw std::runtime_error(std::move(message));
+            }
+            else if(*ae != 0)
               return (*this)(node);
-            break;
+          }break;
           case token_type::identifier_ifdef:
           case token_type::identifier_ifndef:{
             const auto ident = next(range.begin());
