@@ -1851,13 +1851,13 @@ class phase4_t{
               )[([](auto&& v, [[maybe_unused]]auto&&... unused){return v->type();})]
            >> rules.unary
             )
-         )[([](auto&& v, [[maybe_unused]] auto&&... unused){
+         )[([](auto&& v, auto&& loc, [[maybe_unused]] auto&&... unused)->veiler::expected<std::intmax_t, veiler::pegasus::parse_error<std::decay_t<decltype(loc.begin())>>>{
             auto&& [first, muls] = v;
             for(auto&& [op, val] : muls)
               switch(op){
-              case token_type::punctuator_asterisk: first = first * val; break;
-              case token_type::punctuator_division: first = first / val; break;
-              case token_type::punctuator_modulo:   first = first % val; break;
+              case token_type::punctuator_asterisk:                                                                                                             first = first * val; break;
+              case token_type::punctuator_division: if(val == 0)return veiler::make_unexpected(veiler::pegasus::error_type::semantic_check_failed{"div zero"}); first = first / val; break;
+              case token_type::punctuator_modulo:   if(val == 0)return veiler::make_unexpected(veiler::pegasus::error_type::semantic_check_failed{"mod zero"}); first = first % val; break;
               default:                                                   break;
               }
             return first;
