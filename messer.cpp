@@ -1259,11 +1259,11 @@ class phase4_t{
     }
     template<typename Hash>
     static auto apply_cat(Hash&& hashhash, pp_state& pps){
-      static auto search = [](auto it, auto sentinel, auto&& f){
+      static auto search = [](const auto& it, auto sentinel, auto&& f){
         try{
-          return search_(std::move(it), std::move(sentinel), f);
+          return search_(it, std::move(sentinel), f);
         }catch(std::runtime_error&){
-          throw std::runtime_error("operator ## can't receive parameter(search_parameter reach edge)");
+          throw std::runtime_error(std::string{it->filename()} + ':' + std::to_string(it->line()) + ':' + std::to_string(it->column()) + ": error: operator ## can't receive parameter(search_parameter reach edge)");
         }
       };
       const auto prev = search(hashhash, pps.list.begin(), [](auto&& it){--it;});
@@ -1632,18 +1632,18 @@ class phase4_t{
       func_yield(copy.begin(), index);
       for(auto it_ = copy.begin(); it_ != copy.end();){
         if(it_->type() == token_type::punctuator_hash){
-          static auto search = [](auto it, auto sentinel){
+          static auto search = [](const auto& it, auto sentinel){
             try{
-              return search_(std::move(it), std::move(sentinel), [](auto&& it){++it;});
+              return search_(it, std::move(sentinel), [](auto&& it){++it;});
             }catch(std::runtime_error&){
-              throw std::runtime_error("last # : operator # must receive argument");
+              throw std::runtime_error(std::string{it->filename()} + ':' + std::to_string(it->line()) + ':' + std::to_string(it->column()) + ": error: operator # must receive argument");
             }
           };
           auto next = search(it_, copy.end());
           const auto next_i = std::distance(it_, next);
           const auto next_ai = f->second.arg_index[index+next_i];
           if(next_ai == 0)
-            throw std::runtime_error("# receive invalid(not argument) parameter");
+            throw std::runtime_error(std::string{it_->filename()} + ':' + std::to_string(it_->line()) + ':' + std::to_string(it_->column()) + ": error: # receive invalid(not argument) parameter");
           auto replaced = (copy|replacer(it_, std::next(next), token_t{{'"' + 
                   (next_ai < 0 ? stringizer(args[-next_ai-1].begin(), args.back().end())
                                : stringizer(args[ next_ai-1])
@@ -1654,11 +1654,11 @@ class phase4_t{
           continue;
         }
         if(it_->type() == token_type::punctuator_hashhash){
-          static auto search = [](auto it, auto sentinel){
+          static auto search = [](const auto& it, auto sentinel){
             try{
-              return search_(std::move(it), std::move(sentinel), [](auto&& it){++it;});
+              return search_(it, std::move(sentinel), [](auto&& it){++it;});
             }catch(std::runtime_error&){
-              throw std::runtime_error("operator ## can't receive parameter(search_parameter reach edge)");
+              throw std::runtime_error(std::string{it->filename()} + ':' + std::to_string(it->line()) + ':' + std::to_string(it->column()) + ": error: operator ## can't receive parameter(search_parameter reach edge)");
             }
           };
           auto next = search(it_, copy.end());
