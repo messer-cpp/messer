@@ -2609,7 +2609,13 @@ int main(){
 #define __cplusplus 201703L
 #define __STDC_HOSTED__ 1
 #define __STDCPP_DEFAULT_NEW_ALIGNMENT__ 16
+#if __has_include(<stdc-predef.h>)
+#include<stdc-predef.h>
+#else
 #define __STDC_ISO_10646__ 199712L
+#endif
+#define __x86_64__ 1 // TODO: specify for the environment
+#define __LP64__ 1   // TODO: ditto
   )code";
     inputed.emplace_back(predefined_macros);
     auto range = inputed.back() | annotation{"<predefined-macros>"} | phase1 | phase2 | phase3;
