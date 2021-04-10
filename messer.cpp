@@ -1714,6 +1714,17 @@ class phase4_t{
         tmp_state.replaced.erase(i);
       auto replaced = (tmp_state.list|replacer(it, arg_it, std::move(copy)));
       it = replaced.begin();
+      for(auto i = tmp_state.list.begin(); i != tmp_state.list.end();)
+        if(i->type() == token_type::empty){
+          if(auto ri = tmp_state.replaced.find(i); ri != tmp_state.replaced.end())
+            tmp_state.replaced.erase(ri);
+          if(it == i)
+            it = i = tmp_state.list.erase(i);
+          else
+            i = tmp_state.list.erase(i);
+        }
+        else
+          ++i;
       return true;
     }
   }static constexpr eval_macro = {};
