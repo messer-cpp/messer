@@ -1606,6 +1606,7 @@ class phase4_t{
         }
       }
       copy.push_front({{"", token_type::empty}, it->annotation()});
+      pp_state copy_state{copy, std::move(tmp_state.replaced)};
       std::size_t index = 0;
       auto func_yield = [&](auto it_, std::size_t id){
         std::vector<output_range<std::list<token_t>::const_iterator>> ret;
@@ -1630,7 +1631,7 @@ class phase4_t{
           ret.emplace_back(b, it_),
           b = std::next(it_);
         ret.emplace_back(arg_it, end);
-        yield(state, tmp_state, it_, ret);
+        yield(state, copy_state, it_, ret);
       };
       func_yield(std::next(copy.begin()), index);
       for(auto it_ = std::next(copy.begin()); it_ != copy.end();){
@@ -1672,7 +1673,7 @@ class phase4_t{
             copy_insert(copy, next, args[-next_ai-1].begin(), args.back().end());
           else if(next_ai > 0)
             copy_insert(copy, next, args[ next_ai-1].begin(), args[next_ai-1].end());
-          apply_cat(it_, tmp_state);
+          apply_cat(it_, copy_state);
           it_ = next_next;
           index = next_i+1;
           func_yield(it_, index);
@@ -1699,12 +1700,13 @@ class phase4_t{
             copy_insert(copy, it_, args[ ai-1].begin(), args[ai-1].end());
         else
           if(ai < 0)
-            copy_eval_insert(copy_eval_insert, copy, it_, args[-ai-1].begin(), args.back().end(), index, tmp_state);
+            copy_eval_insert(copy_eval_insert, copy, it_, args[-ai-1].begin(), args.back().end(), index, copy_state);
           else
-            copy_eval_insert(copy_eval_insert, copy, it_, args[ ai-1].begin(), args[ai-1].end(), index, tmp_state);
+            copy_eval_insert(copy_eval_insert, copy, it_, args[ ai-1].begin(), args[ai-1].end(), index, copy_state);
         ++index;
       }
       copy.pop_front();
+      tmp_state.replaced = std::move(copy_state.replaced);
       for(auto it_ = copy.begin(), end_ = copy.end(); it_ != end_; ++it_){
         if(tmp_state.replaced[it_].empty())
           tmp_state.replaced[it_] = recur;
