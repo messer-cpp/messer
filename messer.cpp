@@ -1285,12 +1285,14 @@ class phase4_t{
       std::list<token_t> copy(object_it->second.begin(), object_it->second.end());
       for(auto&& x : copy)
         x.annotation() = it->annotation();
+      copy.push_front({{"", token_type::empty}, it->annotation()});
       pp_state copy_state{copy, std::move(tmp_state.replaced)};
       yield(state, copy_state, copy.begin(), {output_range<std::list<token_t>::const_iterator>{copy.begin(), copy.end()}, output_range<std::list<token_t>::const_iterator>{std::next(it), end}});
       for(auto it_ = std::next(copy.begin()), end_ = copy.end(); it_ != end_; ++it_)
         if(it_->type() == token_type::punctuator_hashhash)
           it_ = apply_cat(it_, copy_state),
           yield(state, copy_state, std::next(it_), {output_range<std::list<token_t>::const_iterator>{copy.begin(), copy.end()}, output_range<std::list<token_t>::const_iterator>{std::next(it), end}});
+      copy.pop_front();
       for(auto it_ = copy.begin(), end_ = copy.end(); it_ != end_; ++it_){
         if(check_recur != tmp_state.replaced.end())
           copy_state.replaced[it_] = check_recur->second;
@@ -1603,11 +1605,12 @@ class phase4_t{
           }
         }
       }
+      copy.push_front({{"", token_type::empty}, it->annotation()});
       std::size_t index = 0;
       auto func_yield = [&](auto it_, std::size_t id){
         std::vector<output_range<std::list<token_t>::const_iterator>> ret;
-        if(it_ != copy.begin())
-          ret.emplace_back(copy.begin(), it_);
+        if(it_ != std::next(copy.begin()))
+          ret.emplace_back(std::next(copy.begin()), it_);
         auto b = it_;
         while(it_ != copy.end() && id < f->second.arg_index.size()){
           const auto ai = f->second.arg_index[id];
@@ -1629,8 +1632,8 @@ class phase4_t{
         ret.emplace_back(arg_it, end);
         yield(state, tmp_state, it_, ret);
       };
-      func_yield(copy.begin(), index);
-      for(auto it_ = copy.begin(); it_ != copy.end();){
+      func_yield(std::next(copy.begin()), index);
+      for(auto it_ = std::next(copy.begin()); it_ != copy.end();){
         if(it_->type() == token_type::punctuator_hash){
           static auto search = [](const auto& it, auto sentinel){
             try{
@@ -1701,6 +1704,7 @@ class phase4_t{
             copy_eval_insert(copy_eval_insert, copy, it_, args[ ai-1].begin(), args[ai-1].end(), index, tmp_state);
         ++index;
       }
+      copy.pop_front();
       for(auto it_ = copy.begin(), end_ = copy.end(); it_ != end_; ++it_){
         if(tmp_state.replaced[it_].empty())
           tmp_state.replaced[it_] = recur;
