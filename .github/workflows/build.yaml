@@ -1,0 +1,34 @@
+name: Ubuntu
+
+on:
+  push:
+    branches: [ "**" ]
+    tags: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  standalone:
+    strategy:
+      matrix:
+        include:
+          - image: ubuntu-24.04
+            arch: x86_64
+          - image: ubuntu-24.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.image }}
+    steps:
+    - name: stop update man-page
+      run: |
+        echo "set man-db/auto-update false" | sudo debconf-communicate
+        sudo dpkg-reconfigure man-db
+    - run: |
+        sudo apt update
+        sudo apt install libboost-all-dev
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: build
+      shell: bash
+      run: |
+        CXX=g++-14 CPP=cpp-14 make
