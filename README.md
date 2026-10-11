@@ -5,7 +5,7 @@ Messer is an interactive environment for evaluating C preprocessing macros confo
 ## Prerequisites
 
 - You need to install below manually:
-    - C++17 supported GNU C++ Compiler
+    - C++17 supported C++ Compiler
     - Boost
         - Boost.Coroutine2
         - Boost.Preprocessor
