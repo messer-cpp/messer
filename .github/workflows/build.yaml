@@ -8,14 +8,11 @@ on:
     branches: [ "**" ]
 
 jobs:
-  standalone:
+  ci:
     strategy:
       matrix:
-        include:
-          - image: ubuntu-26.04
-            arch: x86_64
-          - image: ubuntu-26.04-arm
-            arch: aarch64
+        image: [ubuntu-26.04, ubuntu-26.04-arm]
+        compiler: [g++, clang++]
     runs-on: ${{ matrix.image }}
     steps:
     - name: stop update man-page
@@ -31,4 +28,4 @@ jobs:
     - name: build
       shell: bash
       run: |
-        make
+        make CXX:=${{ matrix.compiler }}
