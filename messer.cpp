@@ -1526,7 +1526,7 @@ class phase4_t{
         pull_out_hash(list);
         auto backup = list;
         pp_state ps{list, tmp_state.replaced};
-        for(auto itr = beg_, list_it = list.begin(); itr != end_; ++list_it, ++itr){
+        for(decltype(list.cbegin()) itr = beg_, list_it = list.cbegin(); itr != end_; ++list_it, ++itr){
           const auto finded = tmp_state.replaced.find(itr);
           if(finded != tmp_state.replaced.end())
             ps.replaced[list_it] = std::move(finded->second);
