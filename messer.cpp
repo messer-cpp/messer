@@ -2373,7 +2373,7 @@ class phase4_t{
                 res_->splice(res_->end(), 
                     s_->eval(pps_->list, static_cast<const veiler::pegasus::iterator_range<std::list<token_t>::const_iterator>&>(p), *oa_, current_path, true) );
               }
-              phase4_t* s_;
+              std::conditional_t<true, phase4_t*, T> s_;
               pp_state* pps_;
               override_annotate* oa_;
               decltype(std::declval<T>().end()) end;
